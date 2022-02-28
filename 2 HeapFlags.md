@@ -76,51 +76,51 @@
 * How to detect a debugger through *Flags* field?
     * 32bit code to examine 32bit Windows environment on 32bit or 64bit versions of Windows && subsystem version 3.10-3.50:
         ```
-        call GetVersion     ; Get major and minor version of OS
-                            ; Return: low-order byte = the major version 
-        cmp  al,    6       ; al=major version
-        cmc                 ; Complement CF flag - CF=!CF     
-        sbb  ebx,   ebx     ; subtract with borrow (CF)
-                            ; if majorversion<6, CF=1 after cmc, CF=0, ebx = 0
-                            ; if majorversion>=6,CF=0 after cmc, CF=1, ebx = -1
-        and  ebx,   34h     ; if majorversion>=6, ebx=34h
-        mov  eax,   fs:[30h]; eax = PEB
-        mov  eax,   [eax+18h]           ; eax = Process Heap Base
-        mov  eax,   [eax + ebx + 0ch]   ; eax = Flags
-        and  eax,   0effeffffh  ; clear HEAP_CREATE_ALIGN_16 and HEAP_SKIP_VALIDATION_CHECKS
-        cmp  eax,   40000062h   ; check HEAP_GROWABLE, HEAP_TAIL_CHECKING_ENABLED, HEAP_FREE_CHECKING_ENABLED, HEAP_VALIDATE_PARAMETERS_ENABLED
-        je   being_debugged
+            call GetVersion     ; Get major and minor version of OS
+                                ; Return: low-order byte = the major version 
+            cmp  al,    6       ; al=major version
+            cmc                 ; Complement CF flag - CF=!CF     
+            sbb  ebx,   ebx     ; subtract with borrow (CF)
+                                ; if majorversion<6, CF=1 after cmc, CF=0, ebx = 0
+                                ; if majorversion>=6,CF=0 after cmc, CF=1, ebx = -1
+            and  ebx,   34h     ; if majorversion>=6, ebx=34h
+            mov  eax,   fs:[30h]; eax = PEB
+            mov  eax,   [eax+18h]           ; eax = Process Heap Base
+            mov  eax,   [eax + ebx + 0ch]   ; eax = Flags
+            and  eax,   0effeffffh  ; clear HEAP_CREATE_ALIGN_16 and HEAP_SKIP_VALIDATION_CHECKS
+            cmp  eax,   40000062h   ; check HEAP_GROWABLE, HEAP_TAIL_CHECKING_ENABLED, HEAP_FREE_CHECKING_ENABLED, HEAP_VALIDATE_PARAMETERS_ENABLED
+            je   being_debugged
         ```
     * 32bit code to examine 32bit Windows environment on 32bit or 64bit versions of Windows && subsystem version > 3.50:
         ```
-        call GetVersion     ; Get major and minor version of OS
-                            ; Return: low-order byte = the major version 
-        cmp  al,    6       ; al=major version
-        cmc                 ; Complement CF flag - CF=!CF     
-        sbb  ebx,   ebx     ; subtract with borrow (CF)
-                            ; if majorversion<6, CF=1 after cmc, CF=0, ebx = 0
-                            ; if majorversion>=6,CF=0 after cmc, CF=1, ebx = -1
-        and  ebx,   34h     ; if majorversion>=6, ebx=34h
-        mov  eax,   fs:[30h]; eax = PEB
-        mov  eax,   [eax+18h]           ; eax = Process Heap Base
-        mov  eax,   [eax + ebx + 0ch]   ; eax = Flags
-        bswap       eax     ;  bswap - reverses the byte order in a 32-bit register operand
-        and  al,    0efh    ; clear HEAP_SKIP_VALIDATION_CHECKS
-        cmp  eax,   62000040h   ; check HEAP_GROWABLE, HEAP_TAIL_CHECKING_ENABLED, HEAP_FREE_CHECKING_ENABLED, HEAP_VALIDATE_PARAMETERS_ENABLED
-        je   being_debugged
+            call GetVersion     ; Get major and minor version of OS
+                                ; Return: low-order byte = the major version 
+            cmp  al,    6       ; al=major version
+            cmc                 ; Complement CF flag - CF=!CF     
+            sbb  ebx,   ebx     ; subtract with borrow (CF)
+                                ; if majorversion<6, CF=1 after cmc, CF=0, ebx = 0
+                                ; if majorversion>=6,CF=0 after cmc, CF=1, ebx = -1
+            and  ebx,   34h     ; if majorversion>=6, ebx=34h
+            mov  eax,   fs:[30h]; eax = PEB
+            mov  eax,   [eax+18h]           ; eax = Process Heap Base
+            mov  eax,   [eax + ebx + 0ch]   ; eax = Flags
+            bswap       eax     ;  bswap - reverses the byte order in a 32-bit register operand
+            and  al,    0efh    ; clear HEAP_SKIP_VALIDATION_CHECKS
+            cmp  eax,   62000040h   ; check HEAP_GROWABLE, HEAP_TAIL_CHECKING_ENABLED, HEAP_FREE_CHECKING_ENABLED, HEAP_VALIDATE_PARAMETERS_ENABLED
+            je   being_debugged
         ```
     * 64bit code to examine 64bit Windows environment:
         ```
-        push 60h
-        pop  rsi
-        gs:lodsq    ; rax = PEB
-        mov  ebx,   [rax + 30h] ; ebx = Process Heap Base
-        call GetVersion
-        cmp  al,    6
-        sbb  rax,   rax
-        and  al,    0a4h    ; if majorversion>=6, al=0a4h
-        cmp  d [rbx+rax+70h],   40000062h   ; check HEAP_GROWABLE, HEAP_TAIL_CHECKING_ENABLED, HEAP_FREE_CHECKING_ENABLED, HEAP_VALIDATE_PARAMETERS_ENABLED
-        je   being_debugged
+            push 60h
+            pop  rsi
+            gs:lodsq    ; rax = PEB
+            mov  ebx,   [rax + 30h] ; ebx = Process Heap Base
+            call GetVersion
+            cmp  al,    6
+            sbb  rax,   rax
+            and  al,    0a4h    ; if majorversion>=6, al=0a4h
+            cmp  d [rbx+rax+70h],   40000062h   ; check HEAP_GROWABLE, HEAP_TAIL_CHECKING_ENABLED, HEAP_FREE_CHECKING_ENABLED, HEAP_VALIDATE_PARAMETERS_ENABLED
+            je   being_debugged
         ```
     * 32bit code to examine 64bit Windows environment
         ```
