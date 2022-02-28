@@ -34,7 +34,25 @@
             xor     ebx,    ebx
             call    GetVersion
             cmp     al,     6
-            sbb     ebp,    ebp     ; if al >  6, ebp = 0ffff ffff h
+            sbb     rbp,    rbp     ; if al >  6, ebp = 0ffff ffff h
             jb      l1              
-            mov     eax,    fs:[ebx+30h]    ; eax = PEB
-            mov     eax,    [eax+18h]       ; eax = Process Heap Base
+            mov     rax,    gs:[rbx+60h]    ; rax = PEB
+            mov     eax,    [rax+30h]       ; eax = Process Heap Base
+            mov     ecx,    [rax+40h]       ; check for Heap Protection
+            jrcxz   l1
+            mov     ecx,    [rcx+8]
+            test    [rax+7ch],  ecx
+            cmovne  ebx,    [rax+88h]       ; conditionally get heap key
+        l1: mov     eax,    <heap ptr>
+            movzx   edx,    w [rax-8]       ; size
+            xor     dx,     bx
+            add     edx,    edx
+            movzx   ecx,    b [rax+rbp-1]   ; overhead
+            sub     eax,    ecx
+            lea     edi,    [rdx*8+rax]
+            mov     al,     0abh
+            mov     c1,     10h
+            repe    scasb
+            je      being_debugged
+        ```
+    * No 32bit code to examine 64bit windows environment because 64bit heap cannot be reached by 32bit heap function;
